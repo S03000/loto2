@@ -27,13 +27,24 @@
         }
         #ticketNumber {
             cursor: pointer;
+            position: relative;
         }
         #sendBtn {
+            display: none;
             opacity: 0;
             transition: opacity 0.3s ease;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
         }
-        #ticketNumber:hover + #sendBtn {
+        #ticketNumber:hover #sendBtn {
+            display: block;
             opacity: 1;
+        }
+        .button-container {
+            position: relative;
         }
     </style>
 </head>
@@ -49,9 +60,11 @@
         >
             Вытянуть билет!
         </button>
-        <p id="ticketNumber" class="mt-6 text-2xl md:text-3xl font-mono text-white neon-text" onclick="handleTicketClick()">
-            Ваш номер появится здесь
-        </p>
+        <div class="button-container mt-6">
+            <p id="ticketNumber" class="text-2xl md:text-3xl font-mono text-white neon-text" onclick="handleTicketClick()">
+                Ваш номер появится здесь
+            </p>
+        </div>
     </div>
 
     <script>
@@ -60,9 +73,9 @@
         tg.ready();
         tg.expand();
 
-        // Adapt to Telegram theme
-        document.body.style.backgroundColor = tg.themeParams.bg_color || '#1a0033';
-        document.querySelector('.bg-black').style.backgroundColor = tg.themeParams.secondary_bg_color || 'rgba(0,0,0,0.5)';
+        // Do not adapt to Telegram theme to keep neon style
+        // document.body.style.backgroundColor = tg.themeParams.bg_color || '#1a0033';
+        // document.querySelector('.bg-black').style.backgroundColor = tg.themeParams.secondary_bg_color || 'rgba(0,0,0,0.5)';
 
         // Main button for sending
         tg.MainButton.setText('Отправить билет').onClick(sendTicket).hide();
@@ -77,19 +90,20 @@
             // Format as XXX XXX
             let formattedNum = ticketNum.slice(0, 3) + ' ' + ticketNum.slice(3);
             const ticketElement = document.getElementById('ticketNumber');
+            const sendBtn = document.getElementById('sendBtn');
             ticketElement.textContent = formattedNum;
             // Add a quick animation on number change
             ticketElement.classList.add('animate-pulse');
             setTimeout(() => {
                 ticketElement.classList.remove('animate-pulse');
-                document.getElementById('sendBtn').style.display = 'block';
+                sendBtn.style.display = 'block';
                 tg.MainButton.show();
                 if (isDesktop) {
-                    // For desktop: show on hover
-                    document.getElementById('sendBtn').style.opacity = '0';
+                    // For desktop: rely on hover effect
+                    sendBtn.style.opacity = '0'; // Reset for hover to work
                 } else {
-                    // For mobile: always visible after generation
-                    document.getElementById('sendBtn').style.opacity = '1';
+                    // For mobile: show button immediately
+                    sendBtn.style.opacity = '1';
                 }
             }, 500);
         }
