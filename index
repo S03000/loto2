@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js?59"></script>
+    <style>
+        @keyframes neonGlow {
+            0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff00ff, 0 0 30px #ff00ff; }
+            50% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+        .neon-text {
+            animation: neonGlow 2s ease-in-out infinite;
+        }
+        .neon-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+        }
+        .neon-button:hover {
+            box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff;
+            transform: scale(1.05);
+        }
+        body {
+            background: linear-gradient(135deg, #1a0033, #330066);
+        }
+        #ticketNumber {
+            cursor: pointer;
+        }
+        #sendBtn {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #ticketNumber:hover + #sendBtn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="text-center p-6 rounded-lg bg-black bg-opacity-50 backdrop-blur-md">
+        <h1 class="text-4xl md:text-5xl font-bold text-white neon-text mb-8">
+            Ticket Generator
+        </h1>
+        <button 
+            id="generateBtn"
+            onclick="generateTicket()" 
+            class="neon-button bg-gradient-to-r from-pink-500 to-cyan-500 text-white font-semibold py-3 px-6 rounded-lg text-lg md:text-xl"
+        >
+            Вытянуть билет!
+        </button>
+        <p id="ticketNumber" class="mt-6 text-2xl md:text-3xl font-mono text-white neon-text" onclick="handleTicketClick()">
+            Ваш номер появится здесь
+        </p>
+        <button 
+            id="sendBtn"
+            onclick="sendTicket()"
+            class="neon-button bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold py-3 px-6 rounded-lg text-lg mt-4"
+            style="display: none; opacity: 0;"
+        >
+            Отправить в чат
+        </button>
+    </div>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Adapt to Telegram theme
+        document.body.style.backgroundColor = tg.themeParams.bg_color || '#1a0033';
+        document.querySelector('.bg-black').style.backgroundColor = tg.themeParams.secondary_bg_color || 'rgba(0,0,0,0.5)';
+
+        // Main button for sending
+        tg.MainButton.setText('Отправить билет').onClick(sendTicket).hide();
+
+        // Detect if desktop or mobile
+        const isDesktop = !/Mobi|Android/i.test(navigator.userAgent);
+
+        function generateTicket() {
+            // Generate random number from 1 to 999999 and pad with leading zeros
+            let num = Math.floor(Math.random() * 999999) + 1;
+            let ticketNum = num.toString().padStart(6, '0');
+            // Format as XXX XXX
+            let formattedNum = ticketNum.slice(0, 3) + ' ' + ticketNum.slice(3);
+            const ticketElement = document.getElementById('ticketNumber');
+            ticketElement.textContent = formattedNum;
+            // Add a quick animation on number change
+            ticketElement.classList.add('animate-pulse');
+            setTimeout(() => {
+                ticketElement.classList.remove('animate-pulse');
+                document.getElementById('sendBtn').style.display = 'block';
+                tg.MainButton.show();
+                if (isDesktop) {
+                    // For desktop: show on hover
+                    document.getElementById('sendBtn').style.opacity = '0';
+                } else {
+                    // For mobile: always visible after generation
+                    document.getElementById('sendBtn').style.opacity = '1';
+                }
+            }, 500);
+        }
+
+        function handleTicketClick() {
+            if (!isDesktop) {
+                sendTicket();
+            }
+        }
+
+        function sendTicket() {
+            const ticketNumber = document.getElementById('ticketNumber').textContent;
+            const data = { ticket: ticketNumber };
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }
+    </script>
+</body>
+</html>
